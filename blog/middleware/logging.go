@@ -4,17 +4,19 @@ import (
 	"context"
 	"github.com/go-kit/kit/log"
 	"icarus/blog"
+	"icarus/blog/model"
 	"time"
 )
 
-type LoggingMW struct {
+type Logger struct {
 	Logger log.Logger
 	Inner  blog.Service
 }
 
-func (mw LoggingMW) GetByID(ctx context.Context, ID string) (res blog.EntryModel, err error) {
+func (mw Logger) GetByID(ctx context.Context, ID string) (res model.Entry, err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
+			"ts", time.Now(),
 			"method", "GetByID",
 			"input", ID,
 			"entry-title", res.Title,
@@ -23,15 +25,14 @@ func (mw LoggingMW) GetByID(ctx context.Context, ID string) (res blog.EntryModel
 		)
 	}(time.Now())
 
-	time.Sleep(300 * time.Millisecond)
-
 	res, err = mw.Inner.GetByID(ctx, ID)
 
 	return
 }
-func (mw LoggingMW) GetByAuthor(ctx context.Context, author string) (res []blog.EntryModel, err error) {
+func (mw Logger) GetByAuthor(ctx context.Context, author string) (res []model.Entry, err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
+			"ts", time.Now(),
 			"method", "GetByAuthor",
 			"author", author,
 			"count", len(res),
@@ -44,24 +45,27 @@ func (mw LoggingMW) GetByAuthor(ctx context.Context, author string) (res []blog.
 
 	return
 }
-func (mw LoggingMW) Add(ctx context.Context, entry blog.EntryModel) (err error) {
+
+func (mw Logger) Add(ctx context.Context, entry model.Entry) (id string, err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
+			"ts", time.Now(),
 			"method", "Add",
-			"inputTitle", entry.Title,
+			"id", id,
 			"success", err == nil,
 			"err", err,
 			"took", time.Since(start),
 		)
 	}(time.Now())
 
-	err = mw.Inner.Add(ctx, entry)
+	id, err = mw.Inner.Add(ctx, entry)
 
 	return
 }
-func (mw LoggingMW) UpdateByID(ctx context.Context, ID string, entry blog.EntryModel) (res blog.EntryModel, err error) {
+func (mw Logger) UpdateByID(ctx context.Context, ID string, entry model.Entry) (res model.Entry, err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
+			"ts", time.Now(),
 			"method", "UpdateByID",
 			"ID", entry.ID,
 			"success", err == nil,
@@ -75,7 +79,7 @@ func (mw LoggingMW) UpdateByID(ctx context.Context, ID string, entry blog.EntryM
 	return
 }
 
-func (mw LoggingMW) DeleteByID(ctx context.Context, ID string) (err error) {
+func (mw Logger) DeleteByID(ctx context.Context, ID string) (err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
 			"method", "DeleteByID",
@@ -87,6 +91,19 @@ func (mw LoggingMW) DeleteByID(ctx context.Context, ID string) (err error) {
 	}(time.Now())
 
 	err = mw.Inner.DeleteByID(ctx, ID)
+
+	return
+}
+
+func (mw Logger) CleanUp() {
+	defer func(start time.Time) {
+		mw.Logger.Log(
+			"method", "CleanUp",
+			"took", time.Since(start),
+		)
+	}(time.Now())
+
+	mw.Inner.CleanUp()
 
 	return
 }

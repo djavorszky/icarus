@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"icarus/blog"
+	"icarus/blog/cfg"
 	"icarus/blog/middleware"
+	"icarus/blog/network"
 	"net/http"
 	"os"
 
@@ -15,45 +17,62 @@ import (
 func main() {
 	logger := log.NewLogfmtLogger(os.Stderr)
 
-	var svc blog.Service
-	svc = blog.SVC{}
-	svc = middleware.LoggingMW{logger, svc}
+	svc, err := blog.NewService(cfg.ServiceOpts{
+		Database: cfg.DatabaseOpts{
+			SkipAuth:     true,
+			DatabaseName: "blog",
+			Address:      "127.0.0.1:27017",
+			User:         "root",
+			Pass:         "root",
+		},
+	})
+	if err != nil {
+		logger.Log(
+			"level", "fatal",
+			"error", err.Error(),
+			"exit-code", "1",
+		)
+		os.Exit(1)
+	}
+	defer svc.CleanUp()
+
+	svc = middleware.Logger{Logger: logger, Inner: svc}
 
 	getByIDHandler := httptransport.NewServer(
 		blog.MakeGetByIDEndpoint(svc),
-		blog.DecodeGetByIDRequest,
+		network.DecodeGetByIDRequest,
 		encodeResponse,
 	)
 
 	getByAuthorHandler := httptransport.NewServer(
 		blog.MakeGetByAuthorEndpoint(svc),
-		blog.DecodeGetByAuthorRequest,
+		network.DecodeGetByAuthorRequest,
 		encodeResponse,
 	)
 
 	addHandler := httptransport.NewServer(
 		blog.MakeAddEndpoint(svc),
-		blog.DecodeAddRequest,
+		network.DecodeAddRequest,
 		encodeResponse,
 	)
 
 	updateByIDHandler := httptransport.NewServer(
 		blog.MakeUpdateByIDEndpoint(svc),
-		blog.DecodeUpdateByIDRequest,
+		network.DecodeUpdateByIDRequest,
 		encodeResponse,
 	)
 
 	deleteByIDHandler := httptransport.NewServer(
 		blog.MakeDeleteByIDEndpoint(svc),
-		blog.DecodeDeleteByIDRequest,
+		network.DecodeDeleteByIDRequest,
 		encodeResponse,
 	)
 
-	http.Handle("/get-by-id", getByIDHandler)
-	http.Handle("/get-by-author", getByAuthorHandler)
-	http.Handle("/add", addHandler)
-	http.Handle("/update-by-id", updateByIDHandler)
-	http.Handle("/delete-by-id", deleteByIDHandler)
+	http.Handle("/api/v1/get-by-id", getByIDHandler)
+	http.Handle("/api/v1/get-by-author", getByAuthorHandler)
+	http.Handle("/api/v1/add", addHandler)
+	http.Handle("/api/v1/update-by-id", updateByIDHandler)
+	http.Handle("/api/v1/delete-by-id", deleteByIDHandler)
 
 	logger.Log(
 		"level", "info",
@@ -61,7 +80,7 @@ func main() {
 		"listen", ":8080",
 	)
 
-	err := http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		logger.Log(
 			"level", "fatal",

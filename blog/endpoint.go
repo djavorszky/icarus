@@ -3,65 +3,66 @@ package blog
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"icarus/blog/network"
 )
 
 func MakeGetByIDEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(GetByIDRequest)
+		req := request.(network.GetByIDRequest)
 		result, err := svc.GetByID(ctx, req.ID)
 		if err != nil {
-			return GetByIDResponse{Entry: EntryTransport{}, Error: err.Error()}, nil
+			return network.GetByIDResponse{Success: false, Error: err.Error()}, nil
 		}
-		return GetByIDResponse{Entry: result.ToTransport()}, nil
+		return network.GetByIDResponse{Success: true, Entry: ModelToNetwork(result)}, nil
 	}
 }
 
 func MakeGetByAuthorEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(GetByAuthorRequest)
+		req := request.(network.GetByAuthorRequest)
 		result, err := svc.GetByAuthor(ctx, req.Author)
 		if err != nil {
-			return GetByAuthorResponse{Entries: nil, Error: err.Error()}, nil
+			return network.GetByAuthorResponse{Success: false, Error: err.Error()}, nil
 		}
 
-		entries := make([]EntryTransport, len(result))
+		entries := make([]network.Entry, len(result))
 		for index, entry := range result {
-			entries[index] = entry.ToTransport()
+			entries[index] = ModelToNetwork(entry)
 		}
 
-		return GetByAuthorResponse{Entries: entries}, nil
+		return network.GetByAuthorResponse{Success: true, Entries: entries}, nil
 	}
 }
 
 func MakeAddEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(AddRequest)
-		err := svc.Add(ctx, req.Entry.ToModel())
+		req := request.(network.AddRequest)
+		id, err := svc.Add(ctx, NetworkToModel(req.Entry))
 		if err != nil {
-			return AddResponse{Error: err.Error()}, nil
+			return network.AddResponse{Success: false, Error: err.Error()}, nil
 		}
-		return AddResponse{}, nil
+		return network.AddResponse{Success: true, ID: id}, nil
 	}
 }
 
 func MakeUpdateByIDEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(UpdateByIDRequest)
-		result, err := svc.UpdateByID(ctx, req.ID, req.Entry.ToModel())
+		req := request.(network.UpdateByIDRequest)
+		result, err := svc.UpdateByID(ctx, req.ID, NetworkToModel(req.Entry))
 		if err != nil {
-			return UpdateByIDResponse{Error: err.Error()}, nil
+			return network.UpdateByIDResponse{Success: false, Error: err.Error()}, nil
 		}
-		return UpdateByIDResponse{Entry: result.ToTransport()}, nil
+		return network.UpdateByIDResponse{Success: true, Entry: ModelToNetwork(result)}, nil
 	}
 }
 
 func MakeDeleteByIDEndpoint(svc Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(DeleteByIDRequest)
+		req := request.(network.DeleteByIDRequest)
 		err := svc.DeleteByID(ctx, req.ID)
 		if err != nil {
-			return DeleteByIDResponse{Error: err.Error()}, nil
+			return network.DeleteByIDResponse{Success: false, Error: err.Error()}, nil
 		}
-		return DeleteByIDResponse{}, nil
+		return network.DeleteByIDResponse{Success: true}, nil
 	}
 }

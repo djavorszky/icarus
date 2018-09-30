@@ -1,4 +1,4 @@
-package blog
+package network
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type EntryTransport struct {
+type Entry struct {
 	ID          string    `json:"id"`
 	Title       string    `json:"title"`
 	Subtitle    string    `json:"subtitle"`
@@ -18,26 +18,14 @@ type EntryTransport struct {
 	PublishDate time.Time `json:"publish-date"`
 }
 
-func (et EntryTransport) ToModel() EntryModel {
-	return EntryModel{
-		ID:          et.ID,
-		Title:       et.Title,
-		Subtitle:    et.Subtitle,
-		Content:     et.Content,
-		Author:      et.Author,
-		CreateDate:  et.CreateDate,
-		UpdateDate:  et.UpdateDate,
-		PublishDate: et.PublishDate,
-	}
-}
-
 type GetByIDRequest struct {
 	ID string `json:"id"`
 }
 
 type GetByIDResponse struct {
-	Entry EntryTransport `json:"entry"`
-	Error string         `json:"err"`
+	Entry   Entry  `json:"entry,omitempty"`
+	Success bool   `json:"success"`
+	Error   string `json:"err,omitempty"`
 }
 
 func DecodeGetByIDRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -53,8 +41,9 @@ type GetByAuthorRequest struct {
 }
 
 type GetByAuthorResponse struct {
-	Entries []EntryTransport `json:"entries"`
-	Error   string           `json:"err"`
+	Entries []Entry `json:"entries,omitempty"`
+	Success bool    `json:"success"`
+	Error   string  `json:"err,omitempty"`
 }
 
 func DecodeGetByAuthorRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -66,11 +55,13 @@ func DecodeGetByAuthorRequest(_ context.Context, r *http.Request) (interface{}, 
 }
 
 type AddRequest struct {
-	Entry EntryTransport `json:"entry"`
+	Entry Entry `json:"entry,omitempty"`
 }
 
 type AddResponse struct {
-	Error string `json:"err"`
+	Success bool   `json:"success"`
+	ID      string `json:"id,omitempty"`
+	Error   string `json:"err,omitempty"`
 }
 
 func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -82,13 +73,14 @@ func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 }
 
 type UpdateByIDRequest struct {
-	ID    string         `json:"id"`
-	Entry EntryTransport `json:"entry"`
+	ID    string `json:"id"`
+	Entry Entry  `json:"entry,omitempty"`
 }
 
 type UpdateByIDResponse struct {
-	Entry EntryTransport `json:"entry"`
-	Error string         `json:"err"`
+	Entry   Entry  `json:"entry,omitempty"`
+	Success bool   `json:"success"`
+	Error   string `json:"err,omitempty"`
 }
 
 func DecodeUpdateByIDRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -104,7 +96,8 @@ type DeleteByIDRequest struct {
 }
 
 type DeleteByIDResponse struct {
-	Error string `json:"err"`
+	Success bool   `json:"success"`
+	Error   string `json:"err,omitempty"`
 }
 
 func DecodeDeleteByIDRequest(_ context.Context, r *http.Request) (interface{}, error) {
