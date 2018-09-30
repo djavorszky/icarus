@@ -145,6 +145,10 @@ func (m *mongo) Exists(ctx context.Context, ID string) (bool, error) {
 
 // DeleteByID deletes the entry specified by the provided ID.
 func (m *mongo) DeleteByID(ctx context.Context, ID string) error {
+	err := m.session.DB(m.name).C(collection).Remove(by(ID))
+	if err != nil {
+		return fmt.Errorf("remove: %v", err)
+	}
 
 	return nil
 }
