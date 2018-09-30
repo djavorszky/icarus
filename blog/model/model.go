@@ -25,6 +25,3 @@ type Entry struct {
 	UpdateDate  time.Time
 	PublishDate time.Time
 }
-
-// NopEntry is the empty entry
-var NopEntry = Entry{}

@@ -10,10 +10,10 @@ import (
 
 // Service interface that defines the methods the actual service will need to implement
 type Service interface {
-	GetByID(ctx context.Context, ID string) (model.Entry, error)
-	GetByAuthor(ctx context.Context, author string) ([]model.Entry, error)
-	Add(ctx context.Context, entry model.Entry) (string, error)
-	UpdateByID(ctx context.Context, ID string, entry model.Entry) (model.Entry, error)
+	GetByID(ctx context.Context, ID string) (*model.Entry, error)
+	GetByAuthor(ctx context.Context, author string) ([]*model.Entry, error)
+	Add(ctx context.Context, entry *model.Entry) (string, error)
+	UpdateByID(ctx context.Context, ID string, entry *model.Entry) (*model.Entry, error)
 	DeleteByID(ctx context.Context, ID string) error
 	CleanUp()
 }
@@ -36,43 +36,32 @@ type svc struct {
 	db model.Database
 }
 
-func (s svc) GetByID(ctx context.Context, ID string) (model.Entry, error) {
-	entry, err := s.db.GetByID(ctx, ID)
-	if err != nil {
-		return model.NopEntry, err
-	}
-
-	return *entry, nil
+func (s svc) GetByID(ctx context.Context, ID string) (*model.Entry, error) {
+	return s.db.GetByID(ctx, ID)
 }
 
-func (s svc) GetByAuthor(ctx context.Context, author string) ([]model.Entry, error) {
-	return nil, nil
+func (s svc) GetByAuthor(ctx context.Context, author string) ([]*model.Entry, error) {
+	return s.db.GetByAuthor(ctx, author)
 }
 
-func (s svc) Add(ctx context.Context, entry model.Entry) (string, error) {
-	id, err := s.db.Add(ctx, &entry)
-	if err != nil {
-		return "", fmt.Errorf("add: %v", err)
-	}
-
-	return id, err
+func (s svc) Add(ctx context.Context, entry *model.Entry) (string, error) {
+	return s.db.Add(ctx, entry)
 }
 
-func (s svc) UpdateByID(ctx context.Context, ID string, entry model.Entry) (model.Entry, error) {
-	return model.NopEntry, nil
+func (s svc) UpdateByID(ctx context.Context, ID string, entry *model.Entry) (*model.Entry, error) {
+	return s.db.UpdateByID(ctx, ID, entry)
 }
 
 func (s svc) DeleteByID(ctx context.Context, ID string) error {
-
-	return nil
+	return s.db.DeleteByID(ctx, ID)
 }
 
 func (s svc) CleanUp() {
 	s.db.Close()
 }
 
-func ModelToNetwork(entry model.Entry) network.Entry {
-	return network.Entry{
+func ModelToNetwork(entry *model.Entry) *network.Entry {
+	return &network.Entry{
 		ID:          entry.ID,
 		Title:       entry.Title,
 		Subtitle:    entry.Subtitle,
@@ -84,8 +73,8 @@ func ModelToNetwork(entry model.Entry) network.Entry {
 	}
 }
 
-func NetworkToModel(entry network.Entry) model.Entry {
-	return model.Entry{
+func NetworkToModel(entry *network.Entry) *model.Entry {
+	return &model.Entry{
 		ID:          entry.ID,
 		Title:       entry.Title,
 		Subtitle:    entry.Subtitle,

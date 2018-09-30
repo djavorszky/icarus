@@ -13,13 +13,12 @@ type Logger struct {
 	Inner  blog.Service
 }
 
-func (mw Logger) GetByID(ctx context.Context, ID string) (res model.Entry, err error) {
+func (mw Logger) GetByID(ctx context.Context, ID string) (res *model.Entry, err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
 			"ts", time.Now(),
 			"method", "GetByID",
 			"input", ID,
-			"entry-title", res.Title,
 			"err", err,
 			"took", time.Since(start),
 		)
@@ -29,7 +28,8 @@ func (mw Logger) GetByID(ctx context.Context, ID string) (res model.Entry, err e
 
 	return
 }
-func (mw Logger) GetByAuthor(ctx context.Context, author string) (res []model.Entry, err error) {
+
+func (mw Logger) GetByAuthor(ctx context.Context, author string) (res []*model.Entry, err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
 			"ts", time.Now(),
@@ -46,7 +46,7 @@ func (mw Logger) GetByAuthor(ctx context.Context, author string) (res []model.En
 	return
 }
 
-func (mw Logger) Add(ctx context.Context, entry model.Entry) (id string, err error) {
+func (mw Logger) Add(ctx context.Context, entry *model.Entry) (id string, err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
 			"ts", time.Now(),
@@ -62,7 +62,7 @@ func (mw Logger) Add(ctx context.Context, entry model.Entry) (id string, err err
 
 	return
 }
-func (mw Logger) UpdateByID(ctx context.Context, ID string, entry model.Entry) (res model.Entry, err error) {
+func (mw Logger) UpdateByID(ctx context.Context, ID string, entry *model.Entry) (res *model.Entry, err error) {
 	defer func(start time.Time) {
 		mw.Logger.Log(
 			"ts", time.Now(),

@@ -23,7 +23,7 @@ type GetByIDRequest struct {
 }
 
 type GetByIDResponse struct {
-	Entry   Entry  `json:"entry,omitempty"`
+	Entry   *Entry `json:"entry,omitempty"`
 	Success bool   `json:"success"`
 	Error   string `json:"err,omitempty"`
 }
@@ -41,9 +41,9 @@ type GetByAuthorRequest struct {
 }
 
 type GetByAuthorResponse struct {
-	Entries []Entry `json:"entries,omitempty"`
-	Success bool    `json:"success"`
-	Error   string  `json:"err,omitempty"`
+	Entries []*Entry `json:"entries,omitempty"`
+	Success bool     `json:"success"`
+	Error   string   `json:"err,omitempty"`
 }
 
 func DecodeGetByAuthorRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -55,7 +55,7 @@ func DecodeGetByAuthorRequest(_ context.Context, r *http.Request) (interface{}, 
 }
 
 type AddRequest struct {
-	Entry Entry `json:"entry,omitempty"`
+	Entry *Entry `json:"entry,omitempty"`
 }
 
 type AddResponse struct {
@@ -74,11 +74,11 @@ func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 
 type UpdateByIDRequest struct {
 	ID    string `json:"id"`
-	Entry Entry  `json:"entry,omitempty"`
+	Entry *Entry `json:"entry,omitempty"`
 }
 
 type UpdateByIDResponse struct {
-	Entry   Entry  `json:"entry,omitempty"`
+	Entry   *Entry `json:"entry,omitempty"`
 	Success bool   `json:"success"`
 	Error   string `json:"err,omitempty"`
 }
