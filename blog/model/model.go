@@ -11,6 +11,7 @@ type Database interface {
 	Add(ctx context.Context, entry *Entry) (string, error)
 	UpdateByID(ctx context.Context, ID string, entry *Entry) (*Entry, error)
 	DeleteByID(ctx context.Context, ID string) error
+	Exists(ctx context.Context, ID string) (bool, error)
 	Close()
 }
 

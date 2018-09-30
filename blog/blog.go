@@ -6,6 +6,7 @@ import (
 	"icarus/blog/cfg"
 	"icarus/blog/model"
 	"icarus/blog/network"
+	"time"
 )
 
 // Service interface that defines the methods the actual service will need to implement
@@ -49,6 +50,8 @@ func (s svc) Add(ctx context.Context, entry *model.Entry) (string, error) {
 }
 
 func (s svc) UpdateByID(ctx context.Context, ID string, entry *model.Entry) (*model.Entry, error) {
+	entry.UpdateDate = time.Now()
+
 	return s.db.UpdateByID(ctx, ID, entry)
 }
 

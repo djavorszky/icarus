@@ -75,7 +75,7 @@ func (m *mongo) GetByID(ctx context.Context, ID string) (*Entry, error) {
 	}
 
 	var entry Entry
-	err := m.session.DB(m.name).C(collection).Find(bson.M{"id": ID}).One(&entry)
+	err := m.session.DB(m.name).C(collection).Find(by(ID)).One(&entry)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			return nil, ErrNotExists
@@ -111,8 +111,36 @@ func (m *mongo) Add(ctx context.Context, entry *Entry) (string, error) {
 
 // UpdateByID updates the Entry specified by the ID with the provided Entry.
 func (m *mongo) UpdateByID(ctx context.Context, ID string, entry *Entry) (*Entry, error) {
+	if ID == "" {
+		return nil, fmt.Errorf("id is empty")
+	}
 
-	return nil, nil
+	if err := validateEntry(entry); err != nil {
+		return nil, fmt.Errorf("invalid entry: %v", err)
+	}
+
+	if exists, _ := m.Exists(ctx, ID); !exists {
+		return nil, ErrNotExists
+	}
+
+	entry.ID = ID
+
+	err := m.session.DB(m.name).C(collection).Update(by(ID), entry)
+	if err != nil {
+		return nil, fmt.Errorf("update: %v", err)
+	}
+
+	return entry, nil
+}
+
+// Exists checks whether an entry with the given ID exists
+func (m *mongo) Exists(ctx context.Context, ID string) (bool, error) {
+	count, err := m.session.DB(m.name).C(collection).Find(by(ID)).Count()
+	if err != nil {
+		return false, fmt.Errorf("exists: %v", err)
+	}
+
+	return count != 0, nil
 }
 
 // DeleteByID deletes the entry specified by the provided ID.
@@ -147,4 +175,8 @@ func validateEntry(entry *Entry) error {
 	}
 
 	return nil
+}
+
+func by(id string) bson.M {
+	return bson.M{"id": id}
 }
