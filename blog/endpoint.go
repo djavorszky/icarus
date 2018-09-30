@@ -25,12 +25,13 @@ func MakeGetByAuthorEndpoint(svc Service) endpoint.Endpoint {
 			return network.GetByAuthorResponse{Success: false, Error: err.Error()}, nil
 		}
 
-		entries := make([]*network.Entry, len(result))
+		length := len(result)
+		entries := make([]*network.Entry, length)
 		for index, entry := range result {
 			entries[index] = ModelToNetwork(entry)
 		}
 
-		return network.GetByAuthorResponse{Success: true, Entries: entries}, nil
+		return network.GetByAuthorResponse{Success: true, Entries: entries, Count: length}, nil
 	}
 }
 

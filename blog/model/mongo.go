@@ -43,7 +43,7 @@ func validateOpts(opts cfg.DatabaseOpts) error {
 	}
 
 	if !opts.SkipAuth && opts.User == "" {
-		return fmt.Errorf("empy username")
+		return fmt.Errorf("empty username")
 	}
 
 	return nil
@@ -75,7 +75,7 @@ func (m *mongo) GetByID(ctx context.Context, ID string) (*Entry, error) {
 	}
 
 	var entry Entry
-	err := m.session.DB(m.name).C(collection).Find(by(ID)).One(&entry)
+	err := m.session.DB(m.name).C(collection).Find(by("id", ID)).One(&entry)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			return nil, ErrNotExists
@@ -89,8 +89,14 @@ func (m *mongo) GetByID(ctx context.Context, ID string) (*Entry, error) {
 
 // GetByAuthor returns the entries with the given Author. If no entry with the given author exists, returns ErrNotExists
 func (m *mongo) GetByAuthor(ctx context.Context, author string) ([]*Entry, error) {
+	var list []*Entry
 
-	return nil, nil
+	err := m.session.DB(m.name).C(collection).Find(by("author", author)).All(&list)
+	if err != nil {
+		return nil, fmt.Errorf("byAuthor: %v", err)
+	}
+
+	return list, nil
 }
 
 // Add adds a new entry. It will generate a unique ID for the entry, even if specified.
@@ -125,7 +131,7 @@ func (m *mongo) UpdateByID(ctx context.Context, ID string, entry *Entry) (*Entry
 
 	entry.ID = ID
 
-	err := m.session.DB(m.name).C(collection).Update(by(ID), entry)
+	err := m.session.DB(m.name).C(collection).Update(by("id", ID), entry)
 	if err != nil {
 		return nil, fmt.Errorf("update: %v", err)
 	}
@@ -135,7 +141,7 @@ func (m *mongo) UpdateByID(ctx context.Context, ID string, entry *Entry) (*Entry
 
 // Exists checks whether an entry with the given ID exists
 func (m *mongo) Exists(ctx context.Context, ID string) (bool, error) {
-	count, err := m.session.DB(m.name).C(collection).Find(by(ID)).Count()
+	count, err := m.session.DB(m.name).C(collection).Find(by("id", ID)).Count()
 	if err != nil {
 		return false, fmt.Errorf("exists: %v", err)
 	}
@@ -145,7 +151,7 @@ func (m *mongo) Exists(ctx context.Context, ID string) (bool, error) {
 
 // DeleteByID deletes the entry specified by the provided ID.
 func (m *mongo) DeleteByID(ctx context.Context, ID string) error {
-	err := m.session.DB(m.name).C(collection).Remove(by(ID))
+	err := m.session.DB(m.name).C(collection).Remove(by("id", ID))
 	if err != nil {
 		return fmt.Errorf("remove: %v", err)
 	}
@@ -181,6 +187,6 @@ func validateEntry(entry *Entry) error {
 	return nil
 }
 
-func by(id string) bson.M {
-	return bson.M{"id": id}
+func by(k string, v string) bson.M {
+	return bson.M{k: v}
 }

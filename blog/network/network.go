@@ -41,8 +41,9 @@ type GetByAuthorRequest struct {
 }
 
 type GetByAuthorResponse struct {
-	Entries []*Entry `json:"entries,omitempty"`
 	Success bool     `json:"success"`
+	Count   int      `json:"count,omitempty"`
+	Entries []*Entry `json:"entries"`
 	Error   string   `json:"err,omitempty"`
 }
 
@@ -78,8 +79,8 @@ type UpdateByIDRequest struct {
 }
 
 type UpdateByIDResponse struct {
-	Entry   *Entry `json:"entry,omitempty"`
 	Success bool   `json:"success"`
+	Entry   *Entry `json:"entry,omitempty"`
 	Error   string `json:"err,omitempty"`
 }
 
